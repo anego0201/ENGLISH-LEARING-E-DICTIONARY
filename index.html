@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      viewport-fit=cover → we own the safe areas via env(safe-area-inset-*).
+      NO user-scalable=no / maximum-scale: iOS ignores them and they break accessibility
+      zoom. Double-tap zoom is prevented with `touch-action: manipulation` (index.css).
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>E-Dic Reader — Offline English PDF Reader</title>
+    <meta
+      name="description"
+      content="Read English PDFs offline. Difficult words are highlighted by CEFR level — tap any word for its meaning, IPA and pronunciation."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f7ff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b1020" media="(prefers-color-scheme: dark)" />
+
+    <!-- iOS standalone (Add to Home Screen) -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="E-Dic" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+    <!-- icon / apple-touch-icon / manifest links are injected by vite-plugin-pwa (pwaAssets) -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

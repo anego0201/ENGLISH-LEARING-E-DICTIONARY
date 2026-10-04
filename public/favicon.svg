@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2347"/>
+      <stop offset="1" stop-color="#0b1020"/>
+    </linearGradient>
+    <linearGradient id="hl" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffcf5c"/>
+      <stop offset="1" stop-color="#ff8a5c"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- open book -->
+  <path d="M256 150c-40-26-92-34-140-28v236c48-6 100 2 140 28z" fill="#e8ecff"/>
+  <path d="M256 150c40-26 92-34 140-28v236c-48-6-100 2-140 28z" fill="#c9d1f5"/>
+  <!-- text lines -->
+  <g stroke="#7a86b8" stroke-width="10" stroke-linecap="round">
+    <path d="M148 186h76M148 222h76M148 294h76M148 330h52"/>
+    <path d="M288 186h76M288 294h76M288 330h60"/>
+  </g>
+  <!-- highlighted difficult word -->
+  <rect x="140" y="246" width="96" height="28" rx="8" fill="url(#hl)"/>
+  <rect x="280" y="210" width="96" height="28" rx="8" fill="url(#hl)" opacity=".9"/>
+</svg>

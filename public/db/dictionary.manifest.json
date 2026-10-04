@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "version": "bea15dcfb5831207",
+  "file": "dictionary.sqlite",
+  "bytes": 16384,
+  "sha256": "bea15dcfb583120787edefec498c923ce0cf95f7af6309499bbbb41354def4c0",
+  "pageSize": 4096,
+  "wordCount": 43,
+  "levels": {
+    "A1": 5,
+    "A2": 1,
+    "B1": 1,
+    "B2": 16,
+    "C1": 13,
+    "C2": 7
+  }
+}

@@ -1,0 +1,116 @@
+/*
+ * Tailwind CSS v4 — CSS-first configuration. There is NO tailwind.config.js.
+ * Design tokens live in @theme; they become both CSS variables and utilities
+ * (e.g. --color-surface → bg-surface, text-surface).
+ */
+@import 'tailwindcss';
+
+/* ─── Design tokens ─────────────────────────────────────────────────────── */
+@theme {
+  /* System font stack: SF Pro on iOS, zero bytes downloaded, no CDN (offline-first). */
+  --font-sans: system-ui, -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  --font-serif: ui-serif, 'New York', Georgia, serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Surfaces (light-dark() resolves against color-scheme, see :root) */
+  --color-canvas: light-dark(#f5f7ff, #0b1020);
+  --color-surface: light-dark(#ffffff, #141a33);
+  --color-surface-raised: light-dark(#ffffff, #1b2347);
+  --color-ink: light-dark(#141a33, #e8ecff);
+  --color-ink-muted: light-dark(#5a6488, #9aa5d1);
+  --color-hairline: light-dark(rgb(20 26 51 / 0.1), rgb(232 236 255 / 0.1));
+  --color-accent: light-dark(#4f5bd5, #8b95ff);
+  --color-accent-ink: light-dark(#ffffff, #0b1020);
+
+  /* CEFR highlight palette (overlay fills — semi-transparent so glyphs stay readable) */
+  --color-cefr-b1: oklch(0.86 0.15 95 / 0.45);
+  --color-cefr-b2: oklch(0.8 0.15 65 / 0.45);
+  --color-cefr-c1: oklch(0.72 0.17 35 / 0.42);
+  --color-cefr-c2: oklch(0.65 0.2 350 / 0.4);
+
+  --radius-sheet: 1.5rem;
+  --shadow-sheet: 0 -1px 0 var(--color-hairline), 0 -12px 40px rgb(0 0 0 / 0.18);
+
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1); /* iOS sheet curve */
+  --animate-sheet-in: sheet-in 380ms var(--ease-spring) both;
+
+  @keyframes sheet-in {
+    from {
+      translate: 0 100%;
+    }
+  }
+}
+
+/* ─── Custom utilities ──────────────────────────────────────────────────── */
+
+/* Minimum 44×44 CSS px touch target (Apple HIG). Content can grow it, never shrink it. */
+@utility tap {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+}
+
+/* Chrome (toolbars, buttons, sheet grabber): no callout, no tap flash, no selection. */
+@utility chrome {
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Safe-area padding helpers (notch / Dynamic Island / home indicator). */
+@utility pt-safe {
+  padding-block-start: max(env(safe-area-inset-top), 0.5rem);
+}
+@utility pb-safe {
+  padding-block-end: max(env(safe-area-inset-bottom), 0.75rem);
+}
+@utility px-safe {
+  padding-inline: max(env(safe-area-inset-left), 1rem) max(env(safe-area-inset-right), 1rem);
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    color-scheme: light dark;
+    accent-color: var(--color-accent);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  html,
+  body,
+  #root {
+    block-size: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    /* Rule #7: kills double-tap zoom on iOS while keeping pinch-zoom (accessibility). */
+    touch-action: manipulation;
+    /* No rubber-band bounce of the whole app shell in standalone mode. */
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* iOS auto-zooms into inputs with font-size < 16px. */
+  input,
+  select,
+  textarea {
+    font-size: max(1rem, 16px);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* pdf.js text layer: selectable but invisible glyphs aligned over the canvas.
+     user-select stays enabled here on purpose (Rule #7: never block readable text). */
+  .textLayer ::selection {
+    background: color-mix(in oklab, var(--color-accent) 35%, transparent);
+  }
+}
