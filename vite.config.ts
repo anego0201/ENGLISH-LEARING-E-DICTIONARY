@@ -63,7 +63,7 @@ export default defineConfig(({ command }) => {
           // Rule #2 — default is 2 MiB, which would SILENTLY drop the wink model chunk
           // (~3 MB), wa-sqlite.wasm and the pdf.js worker from the offline cache.
           maximumFileSizeToCacheInBytes: 8 * MiB,
-          globPatterns: ['**/*.{js,mjs,css,html,svg,png,ico,webmanifest,wasm,bcmap,pfb,ttf,icc}'],
+          globPatterns: ['**/*.{js,mjs,css,html,svg,png,ico,webmanifest,wasm,bcmap,pfb,ttf,icc,pdf}'],
           // The dictionary lives in OPFS (streamed once by the worker). Precaching it too
           // would store it twice and force a full re-download on every SW update.
           globIgnores: ['**/db/*.sqlite', '**/db/*.manifest.json', '**/node_modules/**'],

@@ -110,6 +110,28 @@
 
   /* pdf.js text layer: selectable but invisible glyphs aligned over the canvas.
      user-select stays enabled here on purpose (Rule #7: never block readable text). */
+  .textLayer {
+    position: absolute;
+    text-align: initial;
+    inset: 0;
+    overflow: clip;
+    opacity: 1;
+    line-height: 1;
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+    forced-color-adjust: none;
+    transform-origin: 0 0;
+    user-select: text;
+  }
+
+  .textLayer :is(span, br) {
+    color: transparent;
+    position: absolute;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+  }
+
   .textLayer ::selection {
     background: color-mix(in oklab, var(--color-accent) 35%, transparent);
   }
