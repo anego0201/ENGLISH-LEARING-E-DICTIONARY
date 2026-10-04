@@ -48,13 +48,30 @@ export interface WordEntry {
   ipa: string | null;
 }
 
+/** Convenience hit format for direct raw text analysis. */
+export interface TextHit {
+  start: number;
+  end: number;
+  cefr: CefrLevel;
+  lemma: string;
+}
+
+export interface AnalyzePageTextResult {
+  hits: TextHit[];
+  elapsedMs: number;
+}
+
 export interface LexiconApi {
   /** Idempotent: installs the DB into OPFS if needed, then opens it read-only. */
   init(onStatus: (status: LexiconStatus) => void): Promise<LexiconStatus>;
   /** Hot path: lemmatize + batch lemma→level lookup (covering index). */
   analyzePage(req: AnalyzePageRequest): Promise<AnalyzePageResult>;
+  /** Convenience method: analyzes raw text (handles line hyphens) and returns word objects. */
+  analyzePageText(text: string, userCefrLevel?: CefrLevel): Promise<AnalyzePageTextResult>;
   /** Cold path: meaning + IPA for ONE word, on tap. */
   lookup(lemma: string): Promise<WordEntry | null>;
+  /** Alias for lookup (meaning + IPA for ONE word, on tap). */
+  getTranslation(lemma: string): Promise<WordEntry | null>;
   /** Close the DB and release OPFS access handles. */
   dispose(): Promise<void>;
 }
