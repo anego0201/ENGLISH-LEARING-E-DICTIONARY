@@ -11,12 +11,14 @@ import { getLexicon } from '../../lib/lexicon-client';
 
 interface PdfViewerProps {
   initialSource?: string | ArrayBuffer;
+  onWordTap?: (lemma: string, cefr: CefrLevel) => void;
   onWordSelect?: (entry: WordEntry | null) => void;
   activeLemma?: string | null;
 }
 
 export const PdfViewer: React.FC<PdfViewerProps> = ({
   initialSource,
+  onWordTap,
   onWordSelect,
   activeLemma,
 }) => {
@@ -140,14 +142,18 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   };
 
   // Word tap lookup
-  const handleWordTap = async (lemma: string, _cefr: CefrLevel) => {
+  const handleWordTap = async (lemma: string, cefr: CefrLevel) => {
+    // 1. Immediately notify parent of tap for instant UI feedback (zero perceived lag)
+    onWordTap?.(lemma, cefr);
+
+    // 2. Cold path: Fetch full definition (meaning + IPA) from worker
     try {
       const lexicon = getLexicon();
       const entry = await lexicon.getTranslation(lemma);
-      console.log(`[Task 3 Reader] Tapped word "${lemma}":`, entry);
       onWordSelect?.(entry);
     } catch (err) {
       console.error('Error fetching word translation:', err);
+      onWordSelect?.(null);
     }
   };
 
@@ -255,7 +261,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="flex flex-1 items-start justify-center overflow-auto p-4 sm:p-6"
+        className="flex flex-1 items-start justify-center overflow-auto overscroll-contain touch-manipulation p-4 sm:p-6"
       >
         {loading && (
           <div className="flex h-96 flex-col items-center justify-center gap-3 text-ink-muted">

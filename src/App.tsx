@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import * as Comlink from 'comlink';
 import { getLexicon } from './lib/lexicon-client';
+import { initTTS } from './lib/tts';
 import {
   CEFR_LABEL,
   type CefrLevel,
@@ -10,6 +11,7 @@ import {
 } from './shared/lexicon-contract';
 import { UpdateToast } from './features/pwa/UpdateToast';
 import { PdfViewer } from './features/reader/PdfViewer';
+import { BottomSheet } from './features/dictionary/BottomSheet';
 
 type AppTab = 'reader' | 'diagnostic';
 
@@ -17,8 +19,12 @@ export default function App() {
   const [status, setStatus] = useState<LexiconStatus>({ state: 'idle' });
   const [activeTab, setActiveTab] = useState<AppTab>('reader');
 
-  // Selected word translation state (prep for Task 4 Bottom Sheet)
-  const [selectedWord, setSelectedWord] = useState<WordEntry | null>(null);
+  // Dictionary Bottom Sheet State (Task 4)
+  const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
+  const [sheetLemma, setSheetLemma] = useState<string | null>(null);
+  const [sheetCefr, setSheetCefr] = useState<CefrLevel | null>(null);
+  const [sheetEntry, setSheetEntry] = useState<WordEntry | null>(null);
+  const [isSheetLoading, setIsSheetLoading] = useState<boolean>(false);
 
   // Diagnostic tester state
   const [testText, setTestText] = useState(
@@ -30,6 +36,9 @@ export default function App() {
 
   useEffect(() => {
     let unmounted = false;
+    // Preload speech synthesis voices on startup (Rule 8)
+    initTTS();
+
     const lexicon = getLexicon();
 
     lexicon
@@ -52,7 +61,9 @@ export default function App() {
   const handleDiagnosticAnalyze = async () => {
     if (status.state !== 'ready' || analyzing) return;
     setAnalyzing(true);
-    setSelectedWord(null);
+    setIsSheetOpen(false);
+    setSheetEntry(null);
+    setSheetLemma(null);
     try {
       const lexicon = getLexicon();
       const res = await lexicon.analyzePageText(testText, 3); // minLevel B1 = 3
@@ -134,45 +145,21 @@ export default function App() {
       {activeTab === 'reader' ? (
         <div className="relative flex flex-1 flex-col overflow-hidden">
           <PdfViewer
-            onWordSelect={(entry) => setSelectedWord(entry)}
-            activeLemma={selectedWord?.lemma}
+            onWordTap={(lemma, cefr) => {
+              // 1. Immediately open bottom sheet (instant zero-lag UI feedback)
+              setIsSheetOpen(true);
+              setSheetLemma(lemma);
+              setSheetCefr(cefr);
+              setSheetEntry(null);
+              setIsSheetLoading(true);
+            }}
+            onWordSelect={(entry) => {
+              // 2. Populate full definition once SQLite query resolves
+              setSheetEntry(entry);
+              setIsSheetLoading(false);
+            }}
+            activeLemma={sheetLemma}
           />
-
-          {/* Word Detail Card (Simulates Bottom Sheet on Tap - Prep for Task 4) */}
-          {selectedWord && (
-            <div className="chrome fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-md rounded-2xl border border-hairline bg-surface/95 p-4 shadow-xl backdrop-blur-xl animate-sheet-in">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-baseline gap-2">
-                    <h3 className="text-lg font-bold capitalize text-ink">
-                      {selectedWord.lemma}
-                    </h3>
-                    {selectedWord.ipa && (
-                      <span className="text-xs font-mono text-ink-muted">
-                        /{selectedWord.ipa}/
-                      </span>
-                    )}
-                  </div>
-                  <span className="mt-1 inline-block rounded-full bg-accent/20 px-2 py-0.5 text-[11px] font-bold text-accent">
-                    CEFR {CEFR_LABEL[selectedWord.cefr]}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedWord(null)}
-                  className="tap flex size-7 items-center justify-center rounded-full bg-canvas text-xs font-semibold text-ink-muted hover:text-ink active:scale-95"
-                >
-                  ✕
-                </button>
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-ink text-pretty">
-                {selectedWord.meaning}
-              </p>
-              <div className="mt-2 border-t border-hairline pt-2 text-[10px] text-ink-muted">
-                Tip: Full gesture-dismissible Bottom Sheet & TTS will land in Task 4.
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         /* Diagnostic Panel */
@@ -215,29 +202,44 @@ export default function App() {
             {hits.length > 0 && (
               <div className="space-y-2 border-t border-hairline pt-3">
                 <span className="text-xs font-semibold text-ink-muted">
-                  Detected Words ({hits.length}):
+                  Detected Words ({hits.length}) — tap to view definition & pronunciation:
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {hits.map((hit, idx) => {
                     const cefrLevel = hit.cefr as CefrLevel;
                     const levelClass =
                       cefrLevel === 3
-                        ? 'bg-cefr-b1'
+                        ? 'bg-cefr-b1 text-amber-950 dark:text-amber-100'
                         : cefrLevel === 4
-                          ? 'bg-cefr-b2'
+                          ? 'bg-cefr-b2 text-orange-950 dark:text-orange-100'
                           : cefrLevel === 5
-                            ? 'bg-cefr-c1'
-                            : 'bg-cefr-c2';
+                            ? 'bg-cefr-c1 text-rose-950 dark:text-rose-100'
+                            : 'bg-cefr-c2 text-purple-950 dark:text-purple-100';
                     return (
-                      <span
+                      <button
                         key={`${hit.lemma}-${idx}`}
-                        className={`rounded-lg px-2.5 py-1 text-xs font-semibold shadow-xs flex items-center gap-1.5 ${levelClass}`}
+                        type="button"
+                        onClick={async () => {
+                          setIsSheetOpen(true);
+                          setSheetLemma(hit.lemma);
+                          setSheetCefr(hit.cefr);
+                          setSheetEntry(null);
+                          setIsSheetLoading(true);
+                          try {
+                            const lexicon = getLexicon();
+                            const entry = await lexicon.getTranslation(hit.lemma);
+                            setSheetEntry(entry);
+                          } finally {
+                            setIsSheetLoading(false);
+                          }
+                        }}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-semibold shadow-xs flex items-center gap-1.5 transition active:scale-95 ${levelClass}`}
                       >
                         <span>{hit.lemma}</span>
                         <span className="rounded bg-black/20 dark:bg-white/20 px-1 py-0.2 text-[10px]">
                           {CEFR_LABEL[cefrLevel]}
                         </span>
-                      </span>
+                      </button>
                     );
                   })}
                 </div>
@@ -246,6 +248,20 @@ export default function App() {
           </section>
         </main>
       )}
+
+      {/* Dictionary Bottom Sheet (Task 4) */}
+      <BottomSheet
+        isOpen={isSheetOpen}
+        onClose={() => {
+          setIsSheetOpen(false);
+          setSheetLemma(null);
+          setSheetEntry(null);
+        }}
+        entry={sheetEntry}
+        isLoading={isSheetLoading}
+        fallbackLemma={sheetLemma}
+        fallbackCefr={sheetCefr}
+      />
 
       <UpdateToast />
     </div>

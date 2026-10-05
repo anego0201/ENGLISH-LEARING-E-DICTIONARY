@@ -28,6 +28,7 @@ after hearing the risk).
 | pdf.js rendering, canvas, text layer, page lifecycle, zoom  | [`pdfjs-performance`](.agents/skills/pdfjs-performance/SKILL.md) |
 | React UI, Tailwind, Bottom Sheet, gestures, PWA/SW, iOS UX  | [`mobile-ui-pwa`](.agents/skills/mobile-ui-pwa/SKILL.md) |
 | SQLite/wa-sqlite/OPFS, dictionary build, wink-nlp, workers  | [`data-nlp-engineer`](.agents/skills/data-nlp-engineer/SKILL.md) |
+| Minimal diffs, anti-over-engineering, YAGNI, code review   | [`ponytail`](.agents/skills/ponytail/SKILL.md)           |
 
 Tasks spanning several areas → load every matching skill.
 

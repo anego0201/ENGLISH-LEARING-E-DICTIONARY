@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "version": "bea15dcfb5831207",
+  "version": "41549fd81029cbc9",
   "file": "dictionary.sqlite",
   "bytes": 16384,
-  "sha256": "bea15dcfb583120787edefec498c923ce0cf95f7af6309499bbbb41354def4c0",
+  "sha256": "41549fd81029cbc9e90d87136935603266ccd798c903982742f3f1f1f2caefbc",
   "pageSize": 4096,
   "wordCount": 43,
   "levels": {

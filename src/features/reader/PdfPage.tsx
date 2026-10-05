@@ -32,7 +32,7 @@ export const PdfPage: React.FC<PdfPageProps> = ({
   pdfDocument,
   pageNumber,
   scale,
-  docId: _docId,
+  docId = 'default',
   minCefrLevel,
   onWordTap,
   activeLemma,
@@ -67,7 +67,7 @@ export const PdfPage: React.FC<PdfPageProps> = ({
         }
         currentPage = page;
 
-        // 1. Calculate CSS viewport and Retina pixel scale with area cap
+        // 1. Calculate CSS viewport and Retina pixel scale with area cap (Rule 3)
         const viewport = page.getViewport({ scale });
         const cssW = Math.floor(viewport.width);
         const cssH = Math.floor(viewport.height);
@@ -80,7 +80,7 @@ export const PdfPage: React.FC<PdfPageProps> = ({
         const pageContainer = containerRef.current;
         if (!canvasNode || !textLayerNode || !pageContainer) return;
 
-        // Configure canvas dimensions
+        // Configure canvas dimensions (scaled by effectiveRatio for Retina clarity)
         canvasNode.width = Math.floor(cssW * effectiveRatio);
         canvasNode.height = Math.floor(cssH * effectiveRatio);
         canvasNode.style.width = `${cssW}px`;
@@ -101,7 +101,7 @@ export const PdfPage: React.FC<PdfPageProps> = ({
         await currentRenderTask.promise;
         if (isCancelled) return;
 
-        // 3. Render TextLayer (selectable, aligned DOM spans)
+        // 3. Render TextLayer (selectable, aligned DOM spans - Rule 7)
         const textContent = await page.getTextContent();
         if (isCancelled) return;
 
@@ -114,15 +114,21 @@ export const PdfPage: React.FC<PdfPageProps> = ({
         await currentTextLayer.render();
         if (isCancelled) return;
 
-        // 4. NLP analysis & non-destructive highlight projection
+        // 4. NLP analysis & non-destructive highlight projection (Rule 4, 5, 6)
         const { text: reconstructedText, map } = reconstructPageText(textContent.items);
         if (!reconstructedText.trim()) {
           setIsRendering(false);
           return;
         }
 
+        // Hot path: call worker's analyzePage with transferable Uint32Array and LRU cache
         const lexicon = getLexicon();
-        const analysis = await lexicon.analyzePageText(reconstructedText, minCefrLevel);
+        const analysis = await lexicon.analyzePage({
+          docId,
+          pageIndex: pageNumber,
+          text: reconstructedText,
+          minLevel: minCefrLevel,
+        });
         if (isCancelled) return;
 
         // Compute subpixel DOM Range rects aligned to text glyphs
@@ -130,7 +136,8 @@ export const PdfPage: React.FC<PdfPageProps> = ({
           analysis.hits,
           map,
           currentTextLayer.textDivs,
-          pageContainer
+          pageContainer,
+          analysis.lemmas
         );
 
         if (!isCancelled) {
@@ -146,10 +153,14 @@ export const PdfPage: React.FC<PdfPageProps> = ({
       }
     }
 
-    renderPage();
+    // Debounce rapid page flips (100ms) to cancel in-flight render tasks
+    const debounceTimer = setTimeout(() => {
+      renderPage();
+    }, 100);
 
     // STRICT TEARDOWN (Rule 3 & Rule 6): Destroy canvas memory before removal
     return () => {
+      clearTimeout(debounceTimer);
       isCancelled = true;
 
       // 1. Cancel in-flight render task
@@ -193,7 +204,7 @@ export const PdfPage: React.FC<PdfPageProps> = ({
         currentPage = null;
       }
     };
-  }, [pdfDocument, pageNumber, scale, minCefrLevel]);
+  }, [pdfDocument, pageNumber, scale, minCefrLevel, docId]);
 
   return (
     <div
@@ -202,12 +213,12 @@ export const PdfPage: React.FC<PdfPageProps> = ({
         width: pageSize ? `${pageSize.width}px` : undefined,
         height: pageSize ? `${pageSize.height}px` : undefined,
       }}
-      className={`relative mx-auto select-none bg-white shadow-md transition-shadow dark:bg-zinc-900 ${className}`}
+      className={`relative mx-auto bg-white shadow-md transition-shadow dark:bg-zinc-900 ${className}`}
     >
-      {/* Visual PDF Canvas */}
-      <canvas ref={canvasRef} className="block" />
+      {/* Visual PDF Canvas - pointer-events disabled so textLayer receives selection */}
+      <canvas ref={canvasRef} className="block pointer-events-none select-none" />
 
-      {/* Synchronized Transparent Text Layer */}
+      {/* Synchronized Transparent Text Layer (Rule 7: user-select text enabled) */}
       <div ref={textLayerRef} className="textLayer" />
 
       {/* Non-destructive CEFR Highlight Overlay */}

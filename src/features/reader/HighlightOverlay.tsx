@@ -51,6 +51,7 @@ export const HighlightOverlay: React.FC<HighlightOverlayProps> = ({
               e.stopPropagation();
               onWordTap(r.lemma, r.cefr);
             }}
+            aria-label={`${r.lemma}, CEFR ${r.cefr}`}
             title={`${r.lemma} (CEFR ${r.cefr})`}
             style={{
               left: `${r.left}px`,
@@ -58,7 +59,7 @@ export const HighlightOverlay: React.FC<HighlightOverlayProps> = ({
               width: `${r.width}px`,
               height: `${r.height}px`,
             }}
-            className={`absolute pointer-events-auto rounded-[2px] transition-all duration-150 focus:outline-none ${colorClass} ${
+            className={`absolute pointer-events-auto rounded-[2px] transition-all duration-150 focus:outline-none touch-manipulation before:absolute before:-inset-1.5 before:content-[''] ${colorClass} ${
               isActive ? 'ring-2 ring-accent scale-[1.03] shadow-sm' : 'active:opacity-75'
             }`}
           />
