@@ -10,6 +10,7 @@ import {
   type WordEntry,
 } from './shared/lexicon-contract';
 import { UpdateToast } from './features/pwa/UpdateToast';
+import { InstallPrompt } from './features/pwa/InstallPrompt';
 import { PdfViewer } from './features/reader/PdfViewer';
 import { BottomSheet } from './features/dictionary/BottomSheet';
 
@@ -263,6 +264,7 @@ export default function App() {
         fallbackCefr={sheetCefr}
       />
 
+      <InstallPrompt />
       <UpdateToast />
     </div>
   );

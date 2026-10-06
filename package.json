@@ -10,6 +10,7 @@
     "assets:pdfjs": "node scripts/copy-pdfjs-assets.mjs",
     "assets:sample-pdf": "node scripts/generate-sample-pdf.mjs",
     "build:dict": "node --disable-warning=ExperimentalWarning scripts/build-dictionary.mjs --input data/raw/dictionary.sample.csv",
+    "build:db": "node --disable-warning=ExperimentalWarning scripts/build-dictionary.mjs",
     "prepare:assets": "npm run assets:pdfjs && npm run build:dict && npm run assets:sample-pdf",
     "predev": "npm run prepare:assets",
     "dev": "vite",
