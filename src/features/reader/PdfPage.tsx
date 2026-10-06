@@ -89,6 +89,10 @@ export const PdfPage: React.FC<PdfPageProps> = ({
         // Configure text layer container
         textLayerNode.style.width = `${cssW}px`;
         textLayerNode.style.height = `${cssH}px`;
+        textLayerNode.style.setProperty('--scale-factor', `${scale}`);
+        textLayerNode.style.setProperty('--total-scale-factor', `${scale}`);
+        textLayerNode.style.setProperty('--scale-round-x', '1px');
+        textLayerNode.style.setProperty('--scale-round-y', '1px');
         textLayerNode.replaceChildren();
 
         // 2. Render Canvas (visual PDF)

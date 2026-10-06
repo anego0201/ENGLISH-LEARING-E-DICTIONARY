@@ -143,12 +143,15 @@ export function computeHighlightRects(
       if (!div) continue;
 
       const textNode = div.firstChild || div;
-      const maxLen = textNode.textContent?.length ?? 0;
-      if (maxLen === 0) continue;
+      const text = textNode.textContent || '';
+      const maxLen = text.length;
+      if (maxLen === 0 || text.trim().length === 0) continue;
 
       const charStart = itemIdx === startItemIdx ? Math.min(startEntry.charOffset, maxLen) : 0;
       const charEnd =
-        itemIdx === endItemIdx ? Math.min(endEntry.charOffset + 1, maxLen) : maxLen;
+        itemIdx === endItemIdx
+          ? Math.min(endEntry.charOffset + 1, maxLen)
+          : Math.min(text.trimEnd().length, maxLen);
 
       if (charEnd <= charStart) continue;
 
